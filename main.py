@@ -9,14 +9,31 @@ pygame.init()
 screen = pygame.display.set_mode((800, 600))
 
 # Load Background and Sound
-background = pygame.image.load('background.png')
-mixer.music.load("background.wav")
-mixer.music.play(-1)
+background = pygame.image.load(r'C:\xampp\htdocs\space-adventure\background.png')
+# Comment out sound for now
+# mixer.music.load(r'C:\xampp\htdocs\space-adventure\background.wav')
+# mixer.music.play(-1)
 
 # Create game objects
 player = Player()
 enemies = Enemy(num_of_enemies=6)
 bullet = Bullet()
+
+# Score
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+textX = 10
+textY = 10
+
+# Function to show score
+def show_score(x, y):
+    score = font.render(f"Score : {score_value}", True, (255, 255, 255))
+    screen.blit(score, (x, y))
+
+# Function to detect collision
+def is_collision(enemy_x, enemy_y, bullet_x, bullet_y):
+    distance = ((enemy_x - bullet_x)**2 + (enemy_y - bullet_y)**2)**0.5
+    return distance < 27
 
 # Game Loop
 running = True
@@ -49,9 +66,24 @@ while running:
     for i in range(enemies.num_of_enemies):
         enemies.update_position(i)
 
-    # Draw everything on the screen
-    player.draw(screen)
-    bullet.fire(bullet.x)
-    enemies.draw(screen)
+        # Collision detection
+        collision = is_collision(enemies.x[i], enemies.y[i], bullet.x, bullet.y)
+        if collision:
+            bullet.y = 480
+            bullet.state = "ready"
+            score_value += 1
+            enemies.x[i] = random.randint(0, 736)
+            enemies.y[i] = random.randint(50, 150)
+            
+        enemies.draw(screen)
+        
+        if enemies.y[i] > 440:
+            running = False
 
+    player.draw(screen)
+    if bullet.state == "fire":
+        bullet.fire(bullet.x)
+    
+    show_score(textX, textY)
+    
     pygame.display.update()
